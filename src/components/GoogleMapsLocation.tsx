@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { RESTAURANT_INFO } from '../data/restaurantData';
 import { TARGET_PLACE_BIAS, useGooglePlace } from '../context/GooglePlaceContext';
+import { useLanguage } from '../context/LanguageContext';
+import { TRANSLATIONS } from '../data/translations';
 import { ResilientImage } from './ResilientImage';
 
 export function GoogleMapsLocation() {
@@ -29,6 +31,8 @@ export function GoogleMapsLocation() {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const { hasApiKey, isLoading, error, place, allPhotos, refreshPlace } =
     useGooglePlace();
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
 
   const [infoOpen, setInfoOpen] = useState(true);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -46,6 +50,9 @@ export function GoogleMapsLocation() {
     loadingStatus === APILoadingStatus.AUTH_FAILURE;
 
   const photos = allPhotos;
+
+  const getCaption = (index: number) =>
+    t.photoCaptions[index] || photos[index]?.authorName || t.restaurant.fullName;
 
   const handlePrevPhoto = () => {
     if (lightboxIndex === null || photos.length === 0) return;
@@ -65,11 +72,11 @@ export function GoogleMapsLocation() {
             <MapPin className="w-4 h-4 text-[#115E46] shrink-0" aria-hidden="true" />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-stone-900 truncate">
-                {place?.displayName || RESTAURANT_INFO.fullName}
+                {place?.displayName || t.restaurant.fullName}
               </p>
               <p className="text-xs text-stone-500 truncate">
                 {place?.formattedAddress ||
-                  `${RESTAURANT_INFO.city}, ${RESTAURANT_INFO.address}`}
+                  `${t.restaurant.city}, ${t.restaurant.address}`}
               </p>
             </div>
           </div>
@@ -98,7 +105,7 @@ export function GoogleMapsLocation() {
                   className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`}
                   aria-hidden="true"
                 />
-                <span>Yangilash</span>
+                <span>{t.location.refreshBtn}</span>
               </button>
             )}
 
@@ -108,7 +115,7 @@ export function GoogleMapsLocation() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-4 min-h-[44px] text-xs font-medium text-white bg-[#115E46] hover:bg-[#0D4A37] rounded-lg transition-colors whitespace-nowrap shrink-0"
             >
-              <span>Google Maps’da ochish</span>
+              <span>{t.location.openInMaps}</span>
               <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
             </a>
           </div>
@@ -118,11 +125,10 @@ export function GoogleMapsLocation() {
           {mapFailed ? (
             <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-3">
               <p className="text-sm font-medium text-stone-800">
-                Interaktiv xarita yuklanmadi
+                {t.location.mapFailedTitle}
               </p>
               <p className="text-xs text-stone-500 max-w-md">
-                {RESTAURANT_INFO.city}, {RESTAURANT_INFO.address} manzilini
-                bevosita Google Maps ilovasida ko‘rishingiz mumkin.
+                {t.location.mapFailedDesc}
               </p>
               <a
                 href={RESTAURANT_INFO.mapsUrl}
@@ -130,7 +136,7 @@ export function GoogleMapsLocation() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 min-h-[44px] text-xs font-medium text-white bg-[#115E46] rounded-lg"
               >
-                <span>Google Maps’da ochish</span>
+                <span>{t.location.openInMaps}</span>
                 <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
               </a>
             </div>
@@ -173,9 +179,9 @@ export function GoogleMapsLocation() {
                         )}
                         {place.rating && (
                           <p className="text-xs font-medium text-stone-800 tabular-nums">
-                            Reyting: {place.rating.toFixed(1)} / 5
+                            {t.location.ratingPrefix}: {place.rating.toFixed(1)} / 5
                             {place.userRatingCount
-                              ? ` (${place.userRatingCount} ta sharh)`
+                              ? ` (${place.userRatingCount} ${t.location.reviewsUnit})`
                               : ''}
                           </p>
                         )}
@@ -185,7 +191,7 @@ export function GoogleMapsLocation() {
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-xs font-semibold text-[#115E46] underline underline-offset-2 pt-1"
                         >
-                          <span>Yo‘nalish olish</span>
+                          <span>{t.location.getDirections}</span>
                           <ExternalLink className="w-3 h-3" aria-hidden="true" />
                         </a>
                       </div>
@@ -208,12 +214,12 @@ export function GoogleMapsLocation() {
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-5">
           <div>
             <h3 className="font-display text-2xl sm:text-3xl font-semibold text-stone-900">
-              Restoran rasmlari
+              {t.location.galleryTitle}
             </h3>
             <p className="text-xs sm:text-sm text-stone-500 mt-1">
               {photos.length > 0
-                ? `${photos.length} ta haqiqiy rasm — kattalashtirish uchun bosing`
-                : 'Google Maps sahifasidagi haqiqiy restoran fotosuratlari'}
+                ? t.location.galleryCount(photos.length)
+                : t.location.galleryFallbackSubtitle}
             </p>
           </div>
           <a
@@ -222,7 +228,7 @@ export function GoogleMapsLocation() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 min-h-[44px] text-xs sm:text-sm font-medium text-[#115E46] hover:underline underline-offset-4 whitespace-nowrap"
           >
-            <span>Google Maps’da barcha rasmlar</span>
+            <span>{t.location.allPhotosLink}</span>
             <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
           </a>
         </div>
@@ -247,16 +253,16 @@ export function GoogleMapsLocation() {
                   type="button"
                   onClick={() => setLightboxIndex(index)}
                   className="aspect-[4/3] w-full bg-stone-100 overflow-hidden cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-800"
-                  aria-label={`Rasmni kattalashtirish (${index + 1})`}
+                  aria-label={t.location.enlargePhotoAria(index + 1)}
                 >
                   <ResilientImage
                     src={photo.thumbUri}
-                    alt={`${place?.displayName || RESTAURANT_INFO.fullName} — rasm ${index + 1}`}
+                    alt={getCaption(index)}
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.03]"
                   />
                 </button>
                 <figcaption className="px-4 py-2.5 text-[11px] text-stone-500 border-t border-stone-100 truncate">
-                  Manba:{' '}
+                  {t.location.sourcePrefix}:{' '}
                   {photo.authorUri ? (
                     <a
                       href={photo.authorUri}
@@ -264,10 +270,10 @@ export function GoogleMapsLocation() {
                       rel="noopener noreferrer"
                       className="underline hover:text-stone-800"
                     >
-                      {photo.authorName}
+                      {getCaption(index)}
                     </a>
                   ) : (
-                    <span>{photo.authorName}</span>
+                    <span>{getCaption(index)}</span>
                   )}
                 </figcaption>
               </figure>
@@ -276,7 +282,7 @@ export function GoogleMapsLocation() {
         ) : (
           <div className="border border-stone-200 rounded-xl p-6 bg-[#f8f9f8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <p className="text-sm text-stone-600">
-              Google Maps’dagi rasmlarni ko‘rish uchun quyidagi havolani oching.
+              {t.location.emptyGalleryMsg}
             </p>
             <a
               href={RESTAURANT_INFO.mapsUrl}
@@ -284,7 +290,7 @@ export function GoogleMapsLocation() {
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-4 min-h-[44px] text-xs font-medium text-white bg-[#115E46] rounded-lg whitespace-nowrap shrink-0"
             >
-              <span>Google Maps rasmlarini ochish</span>
+              <span>{t.location.openGalleryPhotos}</span>
               <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
             </a>
           </div>
@@ -296,16 +302,16 @@ export function GoogleMapsLocation() {
           className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
-          aria-label="Restoran rasmi"
+          aria-label={t.location.galleryTitle}
         >
           <div className="w-full max-w-4xl flex items-center justify-between text-white/90 pb-3">
             <span className="text-xs sm:text-sm tabular-nums">
-              {lightboxIndex + 1} / {photos.length} · {photos[lightboxIndex].authorName}
+              {lightboxIndex + 1} / {photos.length} · {getCaption(lightboxIndex)}
             </span>
             <button
               type="button"
               onClick={() => setLightboxIndex(null)}
-              aria-label="Yopish"
+              aria-label={t.location.closeAria}
               className="w-11 h-11 inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
@@ -315,7 +321,7 @@ export function GoogleMapsLocation() {
           <div className="relative w-full max-w-4xl aspect-[4/3] sm:aspect-[16/10] bg-black rounded-xl overflow-hidden flex items-center justify-center">
             <img
               src={photos[lightboxIndex].uri}
-              alt={`${place?.displayName || RESTAURANT_INFO.fullName} — rasm ${lightboxIndex + 1}`}
+              alt={getCaption(lightboxIndex)}
               referrerPolicy="no-referrer"
               className="w-full h-full object-contain"
             />
@@ -325,7 +331,7 @@ export function GoogleMapsLocation() {
                 <button
                   type="button"
                   onClick={handlePrevPhoto}
-                  aria-label="Oldingi rasm"
+                  aria-label={t.location.prevAria}
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 text-white inline-flex items-center justify-center cursor-pointer"
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -333,7 +339,7 @@ export function GoogleMapsLocation() {
                 <button
                   type="button"
                   onClick={handleNextPhoto}
-                  aria-label="Keyingi rasm"
+                  aria-label={t.location.nextAria}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 text-white inline-flex items-center justify-center cursor-pointer"
                 >
                   <ChevronRight className="w-5 h-5" />

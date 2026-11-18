@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { Check, Copy, ExternalLink, MapPin, Phone, Clock, Instagram } from 'lucide-react';
-import { GUEST_REVIEWS, RESTAURANT_INFO } from '../data/restaurantData';
+import { RESTAURANT_INFO } from '../data/restaurantData';
+import { useLanguage } from '../context/LanguageContext';
+import { TRANSLATIONS } from '../data/translations';
 import { GoogleMapsLocation } from './GoogleMapsLocation';
 import { TinchlikLogo } from './TinchlikLogo';
 
 export function LocationReviewsSection() {
   const [copied, setCopied] = useState(false);
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
 
   const handleCopyAddress = async () => {
-    const fullAddress = `${RESTAURANT_INFO.city}, ${RESTAURANT_INFO.address}`;
+    const fullAddress = `${t.restaurant.city}, ${t.restaurant.address}`;
     try {
       await navigator.clipboard.writeText(fullAddress);
       setCopied(true);
@@ -25,10 +29,10 @@ export function LocationReviewsSection() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 border-b border-stone-200">
             <div>
               <p className="text-xs font-medium text-[#115E46] tracking-wide mb-2">
-                Mehmonlar fikri
+                {t.reviews.eyebrow}
               </p>
               <h2 className="font-display text-3xl sm:text-4xl font-semibold text-stone-900 tracking-tight text-balance">
-                Samarqand aholisi va mehmonlari ishonchi
+                {t.reviews.title}
               </h2>
             </div>
             <p className="text-sm text-stone-600 tabular-nums">
@@ -36,12 +40,12 @@ export function LocationReviewsSection() {
               <span aria-hidden="true" className="mx-2 text-stone-300">
                 ·
               </span>
-              <span>{RESTAURANT_INFO.ratingSource}</span>
+              <span>{t.restaurant.ratingSource}</span>
             </p>
           </div>
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {GUEST_REVIEWS.map((review) => (
+            {t.reviewsData.map((review) => (
               <article
                 key={review.id}
                 className="bg-white border border-stone-200 rounded-xl p-6 flex flex-col justify-between gap-5"
@@ -77,13 +81,13 @@ export function LocationReviewsSection() {
                 <TinchlikLogo className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 shadow-sm" />
                 <div>
                   <p className="text-xs font-medium text-[#115E46] tracking-wide mb-1.5">
-                    Manzil, xarita va Instagram
+                    {t.location.eyebrow}
                   </p>
                   <h2 className="font-display text-3xl sm:text-4xl font-semibold text-stone-900 tracking-tight text-balance">
-                    Samarqand shahri, Farhod ko‘chasi, 31 / 42-uy
+                    {t.location.heading}
                   </h2>
                   <p className="mt-2 text-sm sm:text-base text-stone-600">
-                    Mo‘ljal: {RESTAURANT_INFO.landmark}
+                    {t.location.landmarkPrefix}: {t.restaurant.landmark}
                   </p>
                 </div>
               </div>
@@ -97,12 +101,12 @@ export function LocationReviewsSection() {
                   {copied ? (
                     <>
                       <Check className="w-4 h-4 text-[#115E46]" aria-hidden="true" />
-                      <span>Manzil nusxalandi</span>
+                      <span>{t.location.copiedAddress}</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-4 h-4" aria-hidden="true" />
-                      <span>Manzilni nusxalash</span>
+                      <span>{t.location.copyAddress}</span>
                     </>
                   )}
                 </button>
@@ -123,7 +127,7 @@ export function LocationReviewsSection() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 min-h-[44px] text-xs sm:text-sm font-medium text-white bg-[#115E46] hover:bg-[#0D4A37] rounded-lg transition-colors"
                 >
-                  <span>Google Maps’da ochish</span>
+                  <span>{t.location.openInMaps}</span>
                   <ExternalLink className="w-4 h-4" aria-hidden="true" />
                 </a>
               </div>
@@ -133,12 +137,14 @@ export function LocationReviewsSection() {
               <div className="p-5 sm:p-6 flex items-start gap-4">
                 <MapPin className="w-5 h-5 text-[#115E46] shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
-                  <p className="text-xs font-medium text-stone-500">Manzil</p>
+                  <p className="text-xs font-medium text-stone-500">
+                    {t.location.addressLabel}
+                  </p>
                   <p className="mt-1 text-sm font-semibold text-stone-900">
-                    {RESTAURANT_INFO.city}, {RESTAURANT_INFO.address}
+                    {t.restaurant.city}, {t.restaurant.address}
                   </p>
                   <p className="mt-0.5 text-xs text-stone-600">
-                    {RESTAURANT_INFO.landmark}
+                    {t.restaurant.landmark}
                   </p>
                 </div>
               </div>
@@ -146,7 +152,9 @@ export function LocationReviewsSection() {
               <div className="p-5 sm:p-6 flex items-start gap-4">
                 <Phone className="w-5 h-5 text-[#115E46] shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
-                  <p className="text-xs font-medium text-stone-500">Telefon raqamlar</p>
+                  <p className="text-xs font-medium text-stone-500">
+                    {t.location.phonesLabel}
+                  </p>
                   <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1">
                     {RESTAURANT_INFO.phones.map((p) => (
                       <a
@@ -164,12 +172,14 @@ export function LocationReviewsSection() {
               <div className="p-5 sm:p-6 flex items-start gap-4">
                 <Clock className="w-5 h-5 text-[#115E46] shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
-                  <p className="text-xs font-medium text-stone-500">Ish vaqti va xizmatlar</p>
+                  <p className="text-xs font-medium text-stone-500">
+                    {t.location.hoursServicesLabel}
+                  </p>
                   <p className="mt-1 text-sm font-semibold text-stone-900 tabular-nums">
-                    {RESTAURANT_INFO.hours}
+                    {t.restaurant.hours}
                   </p>
                   <p className="mt-1 text-xs text-stone-600">
-                    {RESTAURANT_INFO.amenities.join(' · ')}
+                    {t.restaurant.amenities.join(' · ')}
                   </p>
                 </div>
               </div>

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type TouchEvent } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { RESTAURANT_INFO } from '../data/restaurantData';
 import { useGooglePlace } from '../context/GooglePlaceContext';
+import { useLanguage } from '../context/LanguageContext';
+import { TRANSLATIONS } from '../data/translations';
 import { TinchlikLogo } from './TinchlikLogo';
 
 interface HeroProps {
@@ -10,6 +12,9 @@ interface HeroProps {
 
 export function Hero({ onReserveClick }: HeroProps) {
   const { place, allPhotos } = useGooglePlace();
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -72,27 +77,34 @@ export function Hero({ onReserveClick }: HeroProps) {
       value: place?.rating
         ? `${place.rating.toFixed(1)} / 5.0`
         : RESTAURANT_INFO.rating,
-      label: place?.rating ? 'Google Maps reytingi' : 'Yandex Maps reytingi',
+      label: place?.rating
+        ? t.hero.metrics.ratingLabelGoogle
+        : t.hero.metrics.ratingLabelFallback,
       detail: place?.userRatingCount
-        ? `${place.userRatingCount} ta haqiqiy sharh asosida`
-        : 'Samarqand mehmonlari bahosi',
+        ? t.hero.metrics.ratingDetailGoogle(place.userRatingCount)
+        : t.hero.metrics.ratingDetailFallback,
     },
     {
-      value: RESTAURANT_INFO.capacity,
-      label: 'Oilaviy va banket zali',
-      detail: 'Alohida VIP xonalar mavjud',
+      value: t.restaurant.capacity,
+      label: t.hero.metrics.hallLabel,
+      detail: t.hero.metrics.hallDetail,
     },
     {
-      value: '09:00 – 23:00',
-      label: 'Har kuni ochiq',
-      detail: 'Tushlik, kechki ovqat va tadbirlar',
+      value: t.hero.metrics.hoursValue,
+      label: t.hero.metrics.hoursLabel,
+      detail: t.hero.metrics.hoursDetail,
     },
     {
-      value: '100% Halol',
-      label: 'Sertifikatlangan oshxona',
-      detail: 'Milliy va Yevropa taomlari',
+      value: t.hero.metrics.halalValue,
+      label: t.hero.metrics.halalLabel,
+      detail: t.hero.metrics.halalDetail,
     },
   ];
+
+  const activeCaption =
+    t.photoCaptions[activeIndex] ||
+    allPhotos[activeIndex]?.authorName ||
+    t.restaurant.fullName;
 
   return (
     <section className="border-b border-stone-200 bg-white">
@@ -103,7 +115,7 @@ export function Hero({ onReserveClick }: HeroProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         aria-roledescription={slideCount > 1 ? 'carousel' : undefined}
-        aria-label="Restoran rasmlari karuseli"
+        aria-label={t.hero.carouselLabel}
       >
         <div className="absolute inset-0 z-0 pointer-events-none select-none">
           {slideCount > 0 ? (
@@ -143,25 +155,23 @@ export function Hero({ onReserveClick }: HeroProps) {
             <div className="md:col-span-7 max-w-2xl">
               <div className="text-xs sm:text-sm text-stone-200 tracking-wide leading-relaxed mb-5">
                 <p className="font-medium text-emerald-300">
-                  <span>{RESTAURANT_INFO.city}</span>
+                  <span>{t.restaurant.city}</span>
                   <span aria-hidden="true" className="mx-2 text-white/35">
                     ·
                   </span>
-                  <span>{RESTAURANT_INFO.address}</span>
+                  <span>{t.restaurant.address}</span>
                 </p>
                 <p className="text-white font-semibold mt-0.5 text-sm sm:text-base">
-                  {RESTAURANT_INFO.fullName}
+                  {t.restaurant.fullName}
                 </p>
               </div>
 
               <h1 className="font-display font-semibold text-white text-[clamp(2.25rem,4.4vw,3.9rem)] leading-[1.07] tracking-tight text-balance drop-shadow-sm">
-                Samarqand mehmondo‘stligi va oilaviy dasturxon fayzi
+                {t.hero.headline}
               </h1>
 
               <p className="mt-4 sm:mt-5 text-base sm:text-lg text-stone-200 leading-relaxed max-w-[56ch]">
-                Tinchlik oilaviy restorani Farhod ko‘chasida milliy o‘zbek taomlari,
-                cho‘g‘da pishirilgan shashlik hamda Yevropa oshxonasining sara
-                taomlarini shinam va sokin muhitda taqdim etadi.
+                {t.hero.subtitle}
               </p>
 
               <div className="mt-7 sm:mt-9 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-5">
@@ -170,7 +180,7 @@ export function Hero({ onReserveClick }: HeroProps) {
                   onClick={onReserveClick}
                   className="inline-flex items-center justify-center gap-2 px-6 min-h-[48px] text-sm font-medium text-white bg-[#115E46] hover:bg-[#0D4A37] border border-white/20 rounded-lg transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
                 >
-                  <span>Stol bron qilish</span>
+                  <span>{t.hero.reserveCta}</span>
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </button>
 
@@ -178,7 +188,7 @@ export function Hero({ onReserveClick }: HeroProps) {
                   href="#menyu"
                   className="inline-flex items-center justify-center min-h-[48px] px-5 text-sm font-medium text-white bg-white/10 hover:bg-white/18 border border-white/25 backdrop-blur-xs rounded-lg transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
                 >
-                  Menyuni ko‘rish
+                  {t.hero.menuCta}
                 </a>
               </div>
             </div>
@@ -198,7 +208,7 @@ export function Hero({ onReserveClick }: HeroProps) {
                   ·
                 </span>
                 <span className="truncate max-w-[220px] sm:max-w-xs">
-                  {allPhotos[activeIndex]?.authorName || RESTAURANT_INFO.fullName}
+                  {activeCaption}
                 </span>
               </div>
 
@@ -210,7 +220,7 @@ export function Hero({ onReserveClick }: HeroProps) {
                         key={`dot-${idx}`}
                         type="button"
                         onClick={() => setActiveIndex(idx)}
-                        aria-label={`${idx + 1}-rasmga o‘tish`}
+                        aria-label={t.hero.goToPhoto(idx + 1)}
                         aria-current={idx === activeIndex ? 'true' : undefined}
                         className="p-2 cursor-pointer group"
                       >
@@ -228,7 +238,7 @@ export function Hero({ onReserveClick }: HeroProps) {
                   <button
                     type="button"
                     onClick={handlePrev}
-                    aria-label="Oldingi rasm"
+                    aria-label={t.hero.prevPhoto}
                     className="w-11 h-11 rounded-lg bg-black/45 hover:bg-black/70 border border-white/20 text-white inline-flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -236,7 +246,7 @@ export function Hero({ onReserveClick }: HeroProps) {
                   <button
                     type="button"
                     onClick={handleNext}
-                    aria-label="Keyingi rasm"
+                    aria-label={t.hero.nextPhoto}
                     className="w-11 h-11 rounded-lg bg-black/45 hover:bg-black/70 border border-white/20 text-white inline-flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <ChevronRight className="w-5 h-5" />

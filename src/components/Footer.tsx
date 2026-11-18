@@ -1,7 +1,12 @@
 import { RESTAURANT_INFO } from '../data/restaurantData';
+import { useLanguage } from '../context/LanguageContext';
+import { TRANSLATIONS } from '../data/translations';
 import { TinchlikLogo } from './TinchlikLogo';
 
 export function Footer() {
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
+
   return (
     <footer className="bg-[#f8f9f8] border-t border-stone-200 py-10">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -15,26 +20,26 @@ export function Footer() {
               {RESTAURANT_INFO.name}
             </a>
             <p className="mt-1 text-xs text-stone-500">
-              {RESTAURANT_INFO.city} · {RESTAURANT_INFO.address} · {RESTAURANT_INFO.hours}
+              {t.restaurant.city} · {t.restaurant.address} · {t.restaurant.hours}
             </p>
           </div>
         </div>
 
         <nav
-          aria-label="Pastki navigatsiya"
+          aria-label="Footer"
           className="flex flex-wrap items-center gap-6 text-xs font-medium text-stone-600"
         >
           <a href="#menyu" className="hover:text-stone-900 transition-colors">
-            Menyu
+            {t.footer.menu}
           </a>
           <a href="#zallar" className="hover:text-stone-900 transition-colors">
-            Zallar
+            {t.footer.halls}
           </a>
           <a href="#bron" className="hover:text-stone-900 transition-colors">
-            Stol band qilish
+            {t.footer.reserve}
           </a>
           <a href="#manzil" className="hover:text-stone-900 transition-colors">
-            Manzil va xarita
+            {t.footer.map}
           </a>
           <a
             href={RESTAURANT_INFO.instagramUrl}
@@ -47,7 +52,7 @@ export function Footer() {
         </nav>
 
         <p className="text-xs text-stone-500">
-          © {new Date().getFullYear()} {RESTAURANT_INFO.fullName}
+          © {new Date().getFullYear()} {t.restaurant.fullName}
         </p>
       </div>
     </footer>

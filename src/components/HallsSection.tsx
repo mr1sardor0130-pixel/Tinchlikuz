@@ -1,6 +1,8 @@
 import { ArrowRight } from 'lucide-react';
-import { HALL_OPTIONS, RESTAURANT_INFO } from '../data/restaurantData';
+import { HALL_OPTIONS } from '../data/restaurantData';
 import { useGooglePlace } from '../context/GooglePlaceContext';
+import { useLanguage } from '../context/LanguageContext';
+import { TRANSLATIONS } from '../data/translations';
 import { ResilientImage } from './ResilientImage';
 import { TinchlikLogo } from './TinchlikLogo';
 
@@ -10,7 +12,10 @@ interface HallsSectionProps {
 
 export function HallsSection({ onSelectHall }: HallsSectionProps) {
   const { place, isLoading, allPhotos } = useGooglePlace();
-  const hallPhoto = allPhotos[1] || allPhotos[0];
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
+  const hallPhoto = allPhotos[2] || allPhotos[1] || allPhotos[0];
+  const hallCaption = t.photoCaptions[2] || hallPhoto?.authorName || '';
 
   return (
     <section id="zallar" className="py-12 sm:py-16 lg:py-20 bg-white border-y border-stone-200">
@@ -19,15 +24,13 @@ export function HallsSection({ onSelectHall }: HallsSectionProps) {
           <div className="lg:col-span-6 flex flex-col justify-between">
             <div>
               <p className="text-xs font-medium text-[#115E46] tracking-wide mb-2">
-                Zallar va marosimlar
+                {t.halls.eyebrow}
               </p>
               <h2 className="font-display text-3xl sm:text-4xl font-semibold text-stone-900 tracking-tight text-balance">
-                Har bir oilaviy uchrashuv va tantana uchun qulay makon
+                {t.halls.title}
               </h2>
               <p className="mt-3 text-sm sm:text-base text-stone-600 leading-relaxed max-w-[54ch]">
-                Kundalik oilaviy tushlikdan tortib 250 kishigacha bo‘lgan to‘y va
-                yubileylargacha — mehmonlaringiz uchun qulay o‘rindiqlar, raqs
-                maydonchasi va sokin VIP xonalar tayyor.
+                {t.halls.subtitle}
               </p>
             </div>
 
@@ -38,18 +41,18 @@ export function HallsSection({ onSelectHall }: HallsSectionProps) {
                 <>
                   <ResilientImage
                     src={hallPhoto.uri}
-                    alt={`${place?.displayName || RESTAURANT_INFO.fullName} — zal ko‘rinishi`}
+                    alt={`${place?.displayName || t.restaurant.fullName} — ${t.halls.eyebrow}`}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent px-4 py-2.5 text-[11px] text-white/90 truncate">
-                    {hallPhoto.authorName}
+                    {hallCaption}
                   </div>
                 </>
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-stone-50 gap-3">
                   <TinchlikLogo className="w-16 h-16" />
                   <p className="text-xs text-stone-600">
-                    250 nafargacha mehmon uchun oilaviy va banket zallari
+                    {t.halls.fallbackText}
                   </p>
                 </div>
               )}
@@ -57,46 +60,54 @@ export function HallsSection({ onSelectHall }: HallsSectionProps) {
           </div>
 
           <div className="lg:col-span-6 divide-y divide-stone-200 border-t lg:border-t-0 border-stone-200 flex flex-col justify-between">
-            {HALL_OPTIONS.map((hall) => (
-              <div key={hall.id} className="py-5 sm:py-6 first:pt-2 last:pb-2 flex flex-col gap-3">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="font-sans text-lg font-semibold text-stone-900">
-                    {hall.number}. {hall.title}
-                  </h3>
-                  <span className="text-xs font-medium text-stone-500 tabular-nums">
-                    {hall.capacity}
-                  </span>
-                </div>
+            {HALL_OPTIONS.map((hall) => {
+              const tr = t.hallsData[hall.id];
+              const title = tr?.title || hall.title;
+              const capacity = tr?.capacity || hall.capacity;
+              const description = tr?.description || hall.description;
+              const details = tr?.details || hall.details;
 
-                <p className="text-sm text-stone-600 leading-relaxed">
-                  {hall.description}
-                </p>
+              return (
+                <div key={hall.id} className="py-5 sm:py-6 first:pt-2 last:pb-2 flex flex-col gap-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="font-sans text-lg font-semibold text-stone-900">
+                      {hall.number}. {title}
+                    </h3>
+                    <span className="text-xs font-medium text-stone-500 tabular-nums">
+                      {capacity}
+                    </span>
+                  </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                  <p className="text-xs text-stone-500">
-                    {hall.details.map((detail, idx) => (
-                      <span key={detail}>
-                        {detail}
-                        {idx < hall.details.length - 1 && (
-                          <span aria-hidden="true" className="mx-2 text-stone-300">
-                            ·
-                          </span>
-                        )}
-                      </span>
-                    ))}
+                  <p className="text-sm text-stone-600 leading-relaxed">
+                    {description}
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={() => onSelectHall(hall.id)}
-                    className="inline-flex items-center gap-1.5 min-h-[44px] px-3 -mr-3 text-xs sm:text-sm font-semibold text-[#115E46] hover:text-[#0D4A37] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    <span>Band qilish</span>
-                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                  </button>
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                    <p className="text-xs text-stone-500">
+                      {details.map((detail, idx) => (
+                        <span key={detail}>
+                          {detail}
+                          {idx < details.length - 1 && (
+                            <span aria-hidden="true" className="mx-2 text-stone-300">
+                              ·
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => onSelectHall(hall.id)}
+                      className="inline-flex items-center gap-1.5 min-h-[44px] px-3 -mr-3 text-xs sm:text-sm font-semibold text-[#115E46] hover:text-[#0D4A37] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <span>{t.halls.bookBtn}</span>
+                      <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

@@ -42,8 +42,7 @@ export const RESTAURANT_INFO = {
   landmark: 'Aziz bozori, 7-maktab va Favqulodda vaziyatlar boshqarmasi yaqinida',
   instagramHandle: '@tinchlik_restaurant_samarqand',
   instagramUrl: 'https://www.instagram.com/tinchlik_restaurant_samarqand/',
-  logoSrc:
-    '/assets/aistudio/772663878_17962044918168521_5018536621947110371_n_8365f95c.jpg',
+  logoSrc: '/assets/tinchlik-logo-hd.jpg',
   phones: [
     { display: '+998 88 222 08 88', href: 'tel:+998882220888' },
     { display: '+998 91 527 77 74', href: 'tel:+998915277774' },

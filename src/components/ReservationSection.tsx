@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { HALL_OPTIONS, RESTAURANT_INFO } from '../data/restaurantData';
+import { useLanguage } from '../context/LanguageContext';
+import { SiteTranslation, TRANSLATIONS } from '../data/translations';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 
 interface ReservationSectionProps {
@@ -36,29 +38,32 @@ interface ConfirmedBooking {
   mailtoUrl: string;
 }
 
-function buildBookingMessage(data: {
-  code: string;
-  name: string;
-  phone: string;
-  hallTitle: string;
-  date: string;
-  time: string;
-  guests: number;
-  notes: string;
-}): string {
+function buildBookingMessage(
+  t: SiteTranslation,
+  data: {
+    code: string;
+    name: string;
+    phone: string;
+    hallTitle: string;
+    date: string;
+    time: string;
+    guests: number;
+    notes: string;
+  }
+): string {
   const lines = [
-    'Assalomu alaykum! Tinchlik Oilaviy Restoranida stol bron qilmoqchiman:',
+    t.reservation.msgGreeting,
     '',
-    `Bron raqami: #${data.code}`,
-    `Zal: ${data.hallTitle}`,
-    `Sana: ${data.date}`,
-    `Kelish vaqti: ${data.time}`,
-    `Mehmonlar soni: ${data.guests} kishi`,
-    `Ism: ${data.name}`,
-    `Telefon: ${data.phone}`,
+    `${t.reservation.msgCode}: #${data.code}`,
+    `${t.reservation.msgHall}: ${data.hallTitle}`,
+    `${t.reservation.msgDate}: ${data.date}`,
+    `${t.reservation.msgTime}: ${data.time}`,
+    `${t.reservation.msgGuests}: ${data.guests} ${t.reservation.guestsUnit}`,
+    `${t.reservation.msgName}: ${data.name}`,
+    `${t.reservation.msgPhone}: ${data.phone}`,
   ];
   if (data.notes.trim()) {
-    lines.push(`Qo‘shimcha izoh: ${data.notes.trim()}`);
+    lines.push(`${t.reservation.msgNotes}: ${data.notes.trim()}`);
   }
   return lines.join('\n');
 }
@@ -68,6 +73,8 @@ export function ReservationSection({
   onHallChange,
 }: ReservationSectionProps) {
   const todayStr = new Date().toISOString().split('T')[0];
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
 
   const [date, setDate] = useState(todayStr);
   const [time, setTime] = useState('19:30');
@@ -167,34 +174,35 @@ export function ReservationSection({
     const clampedGuests = Math.max(1, Math.min(250, Math.trunc(Number(guests) || 1)));
 
     if (cleanName.length < 2) {
-      setError('Iltimos, ismingizni kiriting (kamida 2 ta harf).');
+      setError(t.reservation.errName);
       return;
     }
 
     if (digitsOnly.length < 7) {
-      setError('Iltimos, bog‘lanish uchun amaldagi telefon raqamingizni kiriting.');
+      setError(t.reservation.errPhone);
       return;
     }
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      setError('Iltimos, sanani to‘g‘ri kiriting.');
+      setError(t.reservation.errDate);
       return;
     }
 
     if (!/^\d{2}:\d{2}$/.test(time)) {
-      setError('Iltimos, kelish vaqtini tanlang.');
+      setError(t.reservation.errTime);
       return;
     }
 
     const hallObj = HALL_OPTIONS.find((h) => h.id === selectedHallId) || HALL_OPTIONS[0];
+    const localizedHallTitle = (t.hallsData[hallObj.id]?.title || hallObj.title).slice(0, 80);
     const code = `TN-${Math.floor(1000 + Math.random() * 9000)}`;
     const reservationId = `tn-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-    const messageText = buildBookingMessage({
+    const messageText = buildBookingMessage(t, {
       code,
       name: cleanName,
       phone: cleanPhone,
-      hallTitle: hallObj.title,
+      hallTitle: localizedHallTitle,
       date,
       time,
       guests: clampedGuests,
@@ -205,7 +213,7 @@ export function ReservationSection({
       messageText
     )}`;
 
-    const mailSubject = `Stol bron qilish #${code} — ${cleanName} (${date}, ${time})`;
+    const mailSubject = `${t.reservation.mailSubjectPrefix} #${code} — ${cleanName} (${date}, ${time})`;
     const mailtoUrl = `mailto:${RESTAURANT_INFO.email}?subject=${encodeURIComponent(
       mailSubject
     )}&body=${encodeURIComponent(messageText)}`;
@@ -215,7 +223,7 @@ export function ReservationSection({
       code,
       name: cleanName,
       phone: cleanPhone,
-      hallTitle: hallObj.title,
+      hallTitle: localizedHallTitle,
       date,
       time,
       guests: clampedGuests,
@@ -236,7 +244,7 @@ export function ReservationSection({
       phone: cleanPhone,
       phoneNormalized: digitsOnly,
       hallId: hallObj.id,
-      hallTitle: hallObj.title,
+      hallTitle: localizedHallTitle,
       date,
       time,
       guests: clampedGuests,
@@ -248,7 +256,6 @@ export function ReservationSection({
 
   return (
     <section id="bron" className="py-16 lg:py-20 bg-[#141a17] text-stone-100">
-      {/* Hidden anchor used inside user submit gesture to open @Aligulyamov Telegram directly without window.open */}
       <a
         ref={telegramTriggerRef}
         href={RESTAURANT_INFO.telegramUrl}
@@ -258,7 +265,7 @@ export function ReservationSection({
         aria-hidden="true"
         tabIndex={-1}
       >
-        Telegramga o‘tish
+        Telegram
       </a>
 
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -266,25 +273,27 @@ export function ReservationSection({
           <div className="lg:col-span-5 space-y-6">
             <div>
               <p className="text-xs font-medium text-emerald-400 tracking-wide mb-2">
-                Stol va zal bron qilish
+                {t.reservation.eyebrow}
               </p>
               <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white tracking-tight text-balance">
-                Stol yoki banket zalini band qiling
+                {t.reservation.title}
               </h2>
               <p className="mt-3 text-sm sm:text-base text-stone-300 leading-relaxed">
-                Ma’lumotlarni to‘ldirib <strong>«Bron qilish»</strong> tugmasini
-                bosing — darhol{' '}
+                {t.reservation.subtitlePrefix}
                 <span className="text-emerald-300 font-medium">
                   @{RESTAURANT_INFO.telegramUsername}
-                </span>{' '}
-                Telegram akkauntiga ariza ochiladi, restoran bazasiga yoziladi va
-                emailga yuborish uchun tayyor holatda chiqadi.
+                </span>
+                {t.reservation.subtitleMiddle}
+                <span className="text-white font-medium">
+                  {RESTAURANT_INFO.email}
+                </span>
+                {t.reservation.subtitleSuffix}
               </p>
             </div>
 
             <div className="pt-6 border-t border-stone-800 space-y-4">
               <p className="text-xs font-medium text-stone-400">
-                Tezkor bog‘lanish va bron
+                {t.reservation.quickContactTitle}
               </p>
               <div className="space-y-2.5">
                 {RESTAURANT_INFO.phones.map((p) => (
@@ -315,7 +324,7 @@ export function ReservationSection({
                 </a>
               </div>
               <p className="text-xs text-stone-400">
-                {RESTAURANT_INFO.hours} · {RESTAURANT_INFO.address}
+                {t.restaurant.hours} · {t.restaurant.address}
               </p>
             </div>
           </div>
@@ -331,60 +340,58 @@ export function ReservationSection({
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-xs font-medium text-emerald-400 tabular-nums">
-                        Bron raqami · #{confirmed.code}
+                        {t.reservation.msgCode} · #{confirmed.code}
                       </p>
                       {cloudStatus === 'saved' && (
                         <span className="text-[11px] font-medium text-emerald-300 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded">
-                          Bazaga saqlandi
+                          {t.reservation.savedBadge}
                         </span>
                       )}
                       {cloudStatus === 'saving' && (
                         <span className="text-[11px] text-stone-400">
-                          Bazaga saqlanmoqda...
+                          {t.reservation.savingBadge}
                         </span>
                       )}
                       {cloudStatus === 'error' && (
                         <span className="text-[11px] text-amber-300">
-                          Telegram va Email orqali yuborishingiz mumkin
+                          {t.reservation.fallbackBadge}
                         </span>
                       )}
                     </div>
                     <h3 className="mt-1 font-display text-2xl font-semibold text-white">
-                      Bron ma’lumotlari yuborildi va tayyor
+                      {t.reservation.confirmedTitle}
                     </h3>
                     <p className="mt-1 text-sm text-stone-300">
-                      Arizangiz{' '}
-                      <span className="text-white font-medium">
-                        @{RESTAURANT_INFO.telegramUsername}
-                      </span>{' '}
-                      Telegramiga yo‘naltirildi hamda{' '}
-                      <span className="text-white font-medium">
-                        {RESTAURANT_INFO.email}
-                      </span>{' '}
-                      manziliga yuborish uchun tayyorlandi.
+                      {t.reservation.confirmedSubtitle(
+                        RESTAURANT_INFO.telegramUsername,
+                        RESTAURANT_INFO.email
+                      )}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-stone-800 text-sm">
                   <div>
-                    <p className="text-xs text-stone-400">Mehmon</p>
+                    <p className="text-xs text-stone-400">{t.reservation.guestLabel}</p>
                     <p className="mt-0.5 font-medium text-white">{confirmed.name}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-stone-400">Telefon raqam</p>
+                    <p className="text-xs text-stone-400">{t.reservation.phoneLabel}</p>
                     <p className="mt-0.5 font-medium text-white tabular-nums">
                       {confirmed.phone}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-stone-400">Tanlangan zal</p>
+                    <p className="text-xs text-stone-400">{t.reservation.hallLabel}</p>
                     <p className="mt-0.5 font-medium text-white">{confirmed.hallTitle}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-stone-400">Sana, vaqt va mehmonlar</p>
+                    <p className="text-xs text-stone-400">
+                      {t.reservation.dateTimeGuestsLabel}
+                    </p>
                     <p className="mt-0.5 font-medium text-white tabular-nums">
-                      {confirmed.date} · {confirmed.time} · {confirmed.guests} kishi
+                      {confirmed.date} · {confirmed.time} · {confirmed.guests}{' '}
+                      {t.reservation.guestsUnit}
                     </p>
                   </div>
                 </div>
@@ -392,7 +399,7 @@ export function ReservationSection({
                 <div className="bg-[#141a17] border border-stone-800 rounded-lg p-4 space-y-3">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-medium text-stone-400">
-                      Yuboriladigan bron xati ({RESTAURANT_INFO.email})
+                      {t.reservation.emailPreviewLabel} ({RESTAURANT_INFO.email})
                     </p>
                     <button
                       type="button"
@@ -402,12 +409,12 @@ export function ReservationSection({
                       {copied ? (
                         <>
                           <Check className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span>Nusxalandi</span>
+                          <span>{t.reservation.copiedText}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span>Nusxa olish</span>
+                          <span>{t.reservation.copyText}</span>
                         </>
                       )}
                     </button>
@@ -425,7 +432,9 @@ export function ReservationSection({
                     className="inline-flex items-center justify-center gap-2 px-5 min-h-[48px] text-sm font-medium text-white bg-[#229ED9] hover:bg-[#1B8BC0] rounded-lg transition-colors whitespace-nowrap"
                   >
                     <Send className="w-4 h-4 shrink-0" aria-hidden="true" />
-                    <span>Telegramga yuborish (@{RESTAURANT_INFO.telegramUsername})</span>
+                    <span>
+                      {t.reservation.sendTelegramBtn} (@{RESTAURANT_INFO.telegramUsername})
+                    </span>
                   </a>
 
                   <a
@@ -433,7 +442,9 @@ export function ReservationSection({
                     className="inline-flex items-center justify-center gap-2 px-5 min-h-[48px] text-sm font-medium text-white bg-[#115E46] hover:bg-[#0D4A37] rounded-lg transition-colors whitespace-nowrap"
                   >
                     <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
-                    <span>Emailga yuborish ({RESTAURANT_INFO.email})</span>
+                    <span>
+                      {t.reservation.sendEmailBtn} ({RESTAURANT_INFO.email})
+                    </span>
                   </a>
                 </div>
 
@@ -448,7 +459,7 @@ export function ReservationSection({
                     }}
                     className="px-4 min-h-[44px] text-xs font-medium text-stone-300 hover:text-white underline underline-offset-4 cursor-pointer"
                   >
-                    Yangi bron qilish
+                    {t.reservation.newBookingBtn}
                   </button>
                 </div>
               </div>
@@ -456,11 +467,12 @@ export function ReservationSection({
               <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 <div>
                   <label className="block text-xs font-medium text-stone-300 mb-2">
-                    Zal turini tanlang
+                    {t.reservation.chooseHallLabel}
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {HALL_OPTIONS.map((hall) => {
                       const active = selectedHallId === hall.id;
+                      const hallTr = t.hallsData[hall.id];
                       return (
                         <button
                           key={hall.id}
@@ -472,9 +484,9 @@ export function ReservationSection({
                               : 'bg-[#141a17] border-stone-700 text-stone-300 hover:border-stone-500'
                           }`}
                         >
-                          <span className="block truncate">{hall.title}</span>
+                          <span className="block truncate">{hallTr?.title || hall.title}</span>
                           <span className="block text-[11px] opacity-80 mt-0.5 tabular-nums">
-                            {hall.capacity}
+                            {hallTr?.capacity || hall.capacity}
                           </span>
                         </button>
                       );
@@ -488,7 +500,7 @@ export function ReservationSection({
                       htmlFor="booking-date"
                       className="block text-xs font-medium text-stone-300 mb-1.5"
                     >
-                      Sana
+                      {t.reservation.dateLabel}
                     </label>
                     <div className="relative">
                       <Calendar
@@ -508,24 +520,24 @@ export function ReservationSection({
 
                   <div>
                     <span className="block text-xs font-medium text-stone-300 mb-1.5">
-                      Mehmonlar soni
+                      {t.reservation.guestsCountLabel}
                     </span>
                     <div className="flex items-center justify-between px-2 min-h-[44px] bg-[#141a17] border border-stone-700 rounded-lg">
                       <button
                         type="button"
                         onClick={() => handleGuestStep(-1)}
-                        aria-label="Mehmonlar sonini kamaytirish"
+                        aria-label={t.reservation.decreaseGuestsAria}
                         className="w-10 h-10 inline-flex items-center justify-center rounded-md text-stone-300 hover:bg-stone-800 transition-colors cursor-pointer"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
                       <span className="text-sm font-semibold text-white tabular-nums">
-                        {guests} kishi
+                        {guests} {t.reservation.guestsUnit}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleGuestStep(1)}
-                        aria-label="Mehmonlar sonini oshirish"
+                        aria-label={t.reservation.increaseGuestsAria}
                         className="w-10 h-10 inline-flex items-center justify-center rounded-md text-stone-300 hover:bg-stone-800 transition-colors cursor-pointer"
                       >
                         <Plus className="w-4 h-4" />
@@ -536,7 +548,7 @@ export function ReservationSection({
 
                 <div>
                   <span className="block text-xs font-medium text-stone-300 mb-2">
-                    Kelish vaqti
+                    {t.reservation.arrivalTimeLabel}
                   </span>
                   <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2">
                     {TIME_SLOTS.map((slot) => {
@@ -565,7 +577,7 @@ export function ReservationSection({
                       htmlFor="booking-name"
                       className="block text-xs font-medium text-stone-300 mb-1.5"
                     >
-                      Ismingiz
+                      {t.reservation.nameLabel}
                     </label>
                     <input
                       id="booking-name"
@@ -573,7 +585,7 @@ export function ReservationSection({
                       maxLength={80}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Masalan, Sardorbek"
+                      placeholder={t.reservation.namePlaceholder}
                       className="w-full px-3.5 min-h-[44px] text-base sm:text-sm bg-[#141a17] border border-stone-700 rounded-lg text-white placeholder:text-stone-500 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -583,7 +595,7 @@ export function ReservationSection({
                       htmlFor="booking-phone"
                       className="block text-xs font-medium text-stone-300 mb-1.5"
                     >
-                      Telefon raqamingiz
+                      {t.reservation.phoneInputLabel}
                     </label>
                     <input
                       id="booking-phone"
@@ -602,7 +614,7 @@ export function ReservationSection({
                     htmlFor="booking-notes"
                     className="block text-xs font-medium text-stone-300 mb-1.5"
                   >
-                    Qo‘shimcha istaklar (ixtiyoriy)
+                    {t.reservation.notesLabel}
                   </label>
                   <input
                     id="booking-notes"
@@ -610,7 +622,7 @@ export function ReservationSection({
                     maxLength={500}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Bolalar o‘rindig‘i, tug‘ilgan kun bezagi yoki maxsus istaklar..."
+                    placeholder={t.reservation.notesPlaceholder}
                     className="w-full px-3.5 min-h-[44px] text-base sm:text-sm bg-[#141a17] border border-stone-700 rounded-lg text-white placeholder:text-stone-500 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -627,16 +639,13 @@ export function ReservationSection({
                     className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 min-h-[48px] text-sm font-medium text-white bg-[#115E46] hover:bg-[#0D4A37] rounded-lg transition-colors duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                   >
                     <Send className="w-4 h-4" aria-hidden="true" />
-                    <span>Bron qilish</span>
+                    <span>{t.reservation.submitBtn}</span>
                   </button>
                   <p className="text-xs text-stone-400">
-                    Bosganingizda ariza{' '}
-                    <span className="text-stone-200">
-                      @{RESTAURANT_INFO.telegramUsername}
-                    </span>{' '}
-                    Telegramiga ochiladi, bazaga saqlanadi hamda{' '}
-                    <span className="text-stone-200">{RESTAURANT_INFO.email}</span>{' '}
-                    manziliga yuborish uchun tayyorlanadi.
+                    {t.reservation.submitHint(
+                      RESTAURANT_INFO.telegramUsername,
+                      RESTAURANT_INFO.email
+                    )}
                   </p>
                 </div>
               </form>
