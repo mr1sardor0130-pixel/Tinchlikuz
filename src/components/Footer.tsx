@@ -1,11 +1,7 @@
 import { RESTAURANT_INFO } from '../data/restaurantData';
 import { TinchlikLogo } from './TinchlikLogo';
 
-interface FooterProps {
-  onOpenAdmin: () => void;
-}
-
-export function Footer({ onOpenAdmin }: FooterProps) {
+export function Footer() {
   return (
     <footer className="bg-[#f8f9f8] border-t border-stone-200 py-10">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -48,13 +44,6 @@ export function Footer({ onOpenAdmin }: FooterProps) {
           >
             Instagram
           </a>
-          <button
-            type="button"
-            onClick={onOpenAdmin}
-            className="hover:text-[#115E46] font-semibold transition-colors cursor-pointer"
-          >
-            Admin panel
-          </button>
         </nav>
 
         <p className="text-xs text-stone-500">

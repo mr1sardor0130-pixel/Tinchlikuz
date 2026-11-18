@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Menu, Phone, Shield, X } from 'lucide-react';
+import { Menu, Phone, X } from 'lucide-react';
 import { RESTAURANT_INFO } from '../data/restaurantData';
 import { useGooglePlace } from '../context/GooglePlaceContext';
 import { TinchlikLogo } from './TinchlikLogo';
 
 interface HeaderProps {
   onReserveClick: () => void;
-  onOpenAdmin: () => void;
 }
 
 const NAV_LINKS = [
@@ -16,7 +15,7 @@ const NAV_LINKS = [
   { href: '#manzil', label: 'Manzil' },
 ];
 
-export function Header({ onReserveClick, onOpenAdmin }: HeaderProps) {
+export function Header({ onReserveClick }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { place, allPhotos } = useGooglePlace();
   const navPhotos = allPhotos;
@@ -82,16 +81,6 @@ export function Header({ onReserveClick, onOpenAdmin }: HeaderProps) {
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             type="button"
-            onClick={onOpenAdmin}
-            aria-label="Admin panelga kirish"
-            className="hidden sm:inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 min-h-[44px] text-xs font-medium text-stone-100 bg-black/35 hover:bg-black/55 border border-white/20 rounded-lg transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
-          >
-            <Shield className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
-            <span>Admin</span>
-          </button>
-
-          <button
-            type="button"
             onClick={onReserveClick}
             className="hidden sm:inline-flex items-center justify-center px-5 py-2.5 min-h-[44px] text-sm font-medium text-white bg-[#115E46] hover:bg-[#0D4A37] border border-white/20 rounded-lg transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
           >
@@ -130,17 +119,6 @@ export function Header({ onReserveClick, onOpenAdmin }: HeaderProps) {
             <Phone className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>Qo‘ng‘iroq: {RESTAURANT_INFO.phones[0].display}</span>
           </a>
-          <button
-            type="button"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              onOpenAdmin();
-            }}
-            className="flex items-center gap-2.5 w-full text-left px-4 min-h-[48px] text-base font-medium text-stone-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <Shield className="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true" />
-            <span>Admin panel va CRM</span>
-          </button>
           <button
             type="button"
             onClick={() => {

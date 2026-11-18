@@ -11,36 +11,39 @@ import { LocationReviewsSection } from './components/LocationReviewsSection';
 import { Footer } from './components/Footer';
 import { AdminPanel } from './components/AdminPanel';
 
+export const SECRET_ADMIN_SLUG = 'tinchlik-boshqaruv-x94k2m';
+
+function isSecretAdminRoute(): boolean {
+  if (typeof window === 'undefined') return false;
+  const cleanPath = window.location.pathname.replace(/\/+$/, '');
+  const cleanHash = window.location.hash.replace(/^#\/?/, '');
+  return (
+    cleanPath === `/${SECRET_ADMIN_SLUG}` || cleanHash === SECRET_ADMIN_SLUG
+  );
+}
+
 export default function App() {
   const [selectedHallId, setSelectedHallId] = useState('oilaviy-zal');
   const [gmpQuotaExceeded, setGmpQuotaExceeded] = useState(false);
-  const [isAdminView, setIsAdminView] = useState(
-    () => typeof window !== 'undefined' && window.location.hash === '#admin'
-  );
+  const [isAdminView, setIsAdminView] = useState<boolean>(() => isSecretAdminRoute());
 
   useEffect(() => {
     const handleQuotaExceeded = () => setGmpQuotaExceeded(true);
-    const handleHashChange = () => {
-      setIsAdminView(window.location.hash === '#admin');
+    const syncRoute = () => {
+      setIsAdminView(isSecretAdminRoute());
     };
     window.addEventListener('gmp-quota-exceeded', handleQuotaExceeded);
-    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('hashchange', syncRoute);
+    window.addEventListener('popstate', syncRoute);
     return () => {
       window.removeEventListener('gmp-quota-exceeded', handleQuotaExceeded);
-      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('hashchange', syncRoute);
+      window.removeEventListener('popstate', syncRoute);
     };
   }, []);
 
-  const openAdminPanel = () => {
-    window.location.hash = 'admin';
-    setIsAdminView(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const backToSite = () => {
-    if (window.location.hash === '#admin') {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
+    window.history.replaceState(null, '', '/');
     setIsAdminView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -80,10 +83,7 @@ export default function App() {
                 </div>
               )}
 
-              <Header
-                onReserveClick={scrollToReservation}
-                onOpenAdmin={openAdminPanel}
-              />
+              <Header onReserveClick={scrollToReservation} />
 
               <main className="flex-1">
                 <Hero onReserveClick={scrollToReservation} />
@@ -100,7 +100,7 @@ export default function App() {
                 />
               </main>
 
-              <Footer onOpenAdmin={openAdminPanel} />
+              <Footer />
             </div>
           </GooglePlaceProvider>
         )}
