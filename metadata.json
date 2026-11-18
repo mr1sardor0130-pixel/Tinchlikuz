@@ -1,0 +1,6 @@
+{
+  "name": "Tinchlik Oilaviy Restorani",
+  "description": "Samarqand shahridagi Tinchlik oilaviy restorani — milliy o‘zbek va Yevropa taomlari, VIP xonalar, 250 o‘rinli banket zali va yetkazib berish xizmati.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

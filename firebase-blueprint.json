@@ -1,0 +1,262 @@
+{
+  "entities": {
+    "Reservation": {
+      "title": "Reservation",
+      "description": "Table or banquet hall booking submitted by a restaurant guest and managed by restaurant admins.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Human-readable booking reference code (e.g., TN-4821).",
+          "minLength": 4,
+          "maxLength": 20,
+          "pattern": "^[A-Za-z0-9\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Guest full name or first name.",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "phone": {
+          "type": "string",
+          "description": "Formatted phone number provided by the guest.",
+          "minLength": 7,
+          "maxLength": 30
+        },
+        "phoneNormalized": {
+          "type": "string",
+          "description": "Digits-only phone identifier used to group CRM guest profiles.",
+          "minLength": 7,
+          "maxLength": 20,
+          "pattern": "^[0-9]{7,20}$"
+        },
+        "hallId": {
+          "type": "string",
+          "description": "Selected hall identifier.",
+          "enum": ["oilaviy-zal", "vip-xona", "banket-zali"]
+        },
+        "hallTitle": {
+          "type": "string",
+          "description": "Display title of the selected hall.",
+          "minLength": 3,
+          "maxLength": 80
+        },
+        "date": {
+          "type": "string",
+          "description": "Requested booking date in YYYY-MM-DD format.",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "time": {
+          "type": "string",
+          "description": "Requested arrival time in HH:MM format.",
+          "minLength": 5,
+          "maxLength": 5,
+          "pattern": "^\\d{2}:\\d{2}$"
+        },
+        "guests": {
+          "type": "integer",
+          "description": "Number of expected guests (1 to 250)."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional special requests from the guest.",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "description": "Reservation lifecycle status.",
+          "enum": ["new", "confirmed", "arrived", "cancelled"]
+        },
+        "adminNote": {
+          "type": "string",
+          "description": "Internal manager note visible only in Admin Panel & CRM.",
+          "maxLength": 500
+        },
+        "telegramTarget": {
+          "type": "string",
+          "description": "Telegram handler username for booking inquiries.",
+          "minLength": 2,
+          "maxLength": 50
+        },
+        "handledByEmail": {
+          "type": "string",
+          "description": "Email of the last admin who updated the reservation status.",
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the booking was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the booking was last updated."
+        }
+      },
+      "required": [
+        "code",
+        "name",
+        "phone",
+        "phoneNormalized",
+        "hallId",
+        "hallTitle",
+        "date",
+        "time",
+        "guests",
+        "notes",
+        "status",
+        "adminNote",
+        "telegramTarget",
+        "handledByEmail",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Admin access record keyed by lowercase verified Google email with granular panel and management permissions.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Lowercase Google account email address matching the document ID.",
+          "minLength": 5,
+          "maxLength": 120,
+          "pattern": "^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,}$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Manager or administrator display name.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "canAccessPanel": {
+          "type": "boolean",
+          "description": "Permission to sign into and view the Admin Panel, bookings, CRM, and statistics."
+        },
+        "canManageBookings": {
+          "type": "boolean",
+          "description": "Permission to update reservation statuses, edit notes, delete bookings, and edit CRM profiles."
+        },
+        "canManageAdmins": {
+          "type": "boolean",
+          "description": "Permission to add, edit permissions of, or remove administrator accounts."
+        },
+        "addedBy": {
+          "type": "string",
+          "format": "email",
+          "description": "Email of the super-admin or admin manager who added this record.",
+          "minLength": 5,
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the admin record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when permissions were last updated."
+        }
+      },
+      "required": [
+        "email",
+        "displayName",
+        "canAccessPanel",
+        "canManageBookings",
+        "canManageAdmins",
+        "addedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CustomerCrm": {
+      "title": "CustomerCrm",
+      "description": "Persistent CRM customer profile keyed by normalized phone digits storing VIP tags and manager notes.",
+      "type": "object",
+      "properties": {
+        "phoneNormalized": {
+          "type": "string",
+          "description": "Digits-only customer phone matching the document ID.",
+          "minLength": 7,
+          "maxLength": 20,
+          "pattern": "^[0-9]{7,20}$"
+        },
+        "phoneDisplay": {
+          "type": "string",
+          "description": "Formatted phone display string.",
+          "minLength": 7,
+          "maxLength": 30
+        },
+        "name": {
+          "type": "string",
+          "description": "Customer display name in CRM.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "tags": {
+          "type": "array",
+          "description": "Bounded list (max 10) of CRM tags such as VIP, Doimiy mijoz, or Banket."
+        },
+        "crmNote": {
+          "type": "string",
+          "description": "Persistent manager CRM note about guest preferences.",
+          "maxLength": 500
+        },
+        "updatedByEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Email of the admin who last updated this CRM profile.",
+          "minLength": 5,
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when CRM record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when CRM record was last updated."
+        }
+      },
+      "required": [
+        "phoneNormalized",
+        "phoneDisplay",
+        "name",
+        "tags",
+        "crmNote",
+        "updatedByEmail",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/reservations/{reservationId}": {
+      "schema": {
+        "$ref": "#/entities/Reservation"
+      },
+      "description": "Guest table/hall reservations. Publicly creatable with strict field and initial-state validation; readable and manageable only by authorized admins."
+    },
+    "/admins/{adminEmail}": {
+      "schema": {
+        "$ref": "#/entities/AdminUser"
+      },
+      "description": "Administrator directory keyed by lowercase email address with granular panel, booking-management, and admin-management permissions."
+    },
+    "/customers/{customerId}": {
+      "schema": {
+        "$ref": "#/entities/CustomerCrm"
+      },
+      "description": "Persistent CRM profiles for repeat guests keyed by digits-only phone number."
+    }
+  }
+}
